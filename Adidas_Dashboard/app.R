@@ -29,7 +29,10 @@ state_lookup <- tibble(
 
 # UI
 ui <- dashboardPage(
-  dashboardHeader(title = "Adidas Sales Dashboard"),
+  dashboardHeader(title = tags$div(
+    style = "display: flex; align-items: center; justify-content: center; width: 100%; padding-top: 5px;",
+    tags$img(src = "logo.png", height = "40px", style = "margin-right: 10px;"),
+  )),
   dashboardSidebar(
     sidebarMenu(
       menuItem("Dashboard Home", tabName = "home", icon = icon("tachometer-alt")),
@@ -42,21 +45,70 @@ ui <- dashboardPage(
   dashboardBody(
     tags$head(
       tags$style(HTML("
+    /* Keep sidebar fixed on desktop */
+    .main-sidebar {
+      position: fixed;
+      top: 50px;
+      height: calc(100% - 50px);
+      overflow: hidden;
+    }
+
+    .main-header {
+      position: fixed;
+      width: 100%;
+      z-index: 1030;
+    }
+
+    .wrapper {
+      padding-top: 50px;
+    }
+
+    .content-wrapper, .right-side {
+      margin-left: 230px;
+      height: calc(100vh - 50px);
+      overflow-y: auto;
+    }
+
+    /* Responsive: hide sidebar on small screens and use toggle */
+    @media (max-width: 768px) {
       .main-sidebar {
-        position: fixed;
-        height: 100%;
-        overflow: hidden;
+        position: absolute;
+        transform: translateX(-230px);
+        transition: transform 0.3s ease;
+        z-index: 999;
       }
-      .sidebar {
-        overflow-y: hidden !important;
+
+      .sidebar-open .main-sidebar {
+        transform: translateX(0);
       }
+
       .content-wrapper, .right-side {
-        margin-left: 230px;
-        overflow-y: auto;
-        height: 100vh;
+        margin-left: 0 !important;
       }
-    "))
+
+      .main-header {
+        position: fixed;
+      }
+
+      .wrapper {
+        padding-top: 50px;
+      }
+
+      /* Optional: dark overlay on open sidebar */
+      .sidebar-open .content-wrapper::before {
+        content: '';
+        position: fixed;
+        top: 50px;
+        left: 0;
+        width: 100%;
+        height: calc(100% - 50px);
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 998;
+      }
+    }
+  "))
     ),
+    
     
     tabItems(
       # Dashboard Home Tab
