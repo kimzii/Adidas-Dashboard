@@ -40,6 +40,24 @@ ui <- dashboardPage(
     )
   ),
   dashboardBody(
+    tags$head(
+      tags$style(HTML("
+      .main-sidebar {
+        position: fixed;
+        height: 100%;
+        overflow: hidden;
+      }
+      .sidebar {
+        overflow-y: hidden !important;
+      }
+      .content-wrapper, .right-side {
+        margin-left: 230px;
+        overflow-y: auto;
+        height: 100vh;
+      }
+    "))
+    ),
+    
     tabItems(
       # Dashboard Home Tab
       tabItem(tabName = "home",
