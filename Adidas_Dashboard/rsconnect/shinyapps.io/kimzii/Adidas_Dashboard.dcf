@@ -5,7 +5,7 @@ account: kimzii
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 14813592
-bundleId: 10331096
+bundleId: 10331268
 url: https://kimzii.shinyapps.io/Adidas_Dashboard/
 version: 1
 asMultiple: FALSE

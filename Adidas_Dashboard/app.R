@@ -45,7 +45,7 @@ ui <- dashboardPage(
   dashboardBody(
     tags$head(
       tags$style(HTML("
-    /* Keep sidebar fixed on desktop */
+    /* Sidebar fixed for desktop */
     .main-sidebar {
       position: fixed;
       top: 50px;
@@ -67,9 +67,9 @@ ui <- dashboardPage(
       margin-left: 230px;
       height: calc(100vh - 50px);
       overflow-y: auto;
+      padding-top: 50px;  /* 👈 Add spacing below the fixed header */
     }
 
-    /* Responsive: hide sidebar on small screens and use toggle */
     @media (max-width: 768px) {
       .main-sidebar {
         position: absolute;
@@ -84,6 +84,7 @@ ui <- dashboardPage(
 
       .content-wrapper, .right-side {
         margin-left: 0 !important;
+        padding-top: 100px; /* 👈 Extra padding for mobile view */
       }
 
       .main-header {
@@ -94,7 +95,6 @@ ui <- dashboardPage(
         padding-top: 50px;
       }
 
-      /* Optional: dark overlay on open sidebar */
       .sidebar-open .content-wrapper::before {
         content: '';
         position: fixed;
@@ -108,6 +108,7 @@ ui <- dashboardPage(
     }
   "))
     ),
+    
     
     
     tabItems(
@@ -173,8 +174,14 @@ ui <- dashboardPage(
                     plotlyOutput("predicted_vs_actual"))
               ),
               fluidRow(
-                box(title = "Model Performance Metrics", status = "primary", solidHeader = TRUE, width = 12,
-                    verbatimTextOutput("model_metrics"))
+                box(
+                  title = "Model Performance Metrics",
+                  status = "primary",
+                  solidHeader = TRUE,
+                  width = 12,
+                  htmlOutput("model_metrics")
+                )
+                
               )
       ),
       
@@ -445,14 +452,26 @@ server <- function(input, output, session) {
     ggplotly(p)
   })
   
-  output$model_metrics <- renderPrint({
+  output$model_metrics <- renderUI({
     model_fit_obj <- model_fit()
     df <- model_data_filtered()
     preds <- predict(model_fit_obj, newdata = df)
+    
     r2_val <- caret::R2(preds, df$Total.Sales)
     rmse_val <- caret::RMSE(preds, df$Total.Sales)
-    cat(sprintf("Model Performance Metrics:\nR-squared: %.3f\nRMSE: %s", r2_val, scales::dollar(rmse_val)))
+    
+    HTML(paste0(
+      "<div style='font-size:16px;'>",
+      "<p><strong>Model Performance Summary:</strong></p>",
+      "<ul style='line-height:1.6;'>",
+      "<li><span style='color:#0073e6;'>R-squared:</span> <strong>", round(r2_val, 3), "</strong> — indicates how well the model explains variance in sales.</li>",
+      "<li><span style='color:#d9534f;'>RMSE:</span> <strong>", scales::dollar(rmse_val), "</strong> — the average prediction error in dollars.</li>",
+      "</ul>",
+      "<p>These metrics suggest the accuracy of predictions made using product price, units sold, and sales method.</p>",
+      "</div>"
+    ))
   })
+  
   
   output$recommendations <- renderPrint({
     cat("Recommendations based on current sales data and model insights:\n")
