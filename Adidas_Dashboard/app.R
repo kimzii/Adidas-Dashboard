@@ -453,9 +453,13 @@ server <- function(input, output, session) {
       geom_point(color = "darkorange") +
       geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") +
       labs(x = "Actual Total Sales", y = "Predicted Total Sales") +
+      scale_x_continuous(labels = scales::dollar) +  # 👈 disable sci notation
+      scale_y_continuous(labels = scales::dollar) +
       theme_minimal()
+    
     ggplotly(p)
   })
+  
   
   output$model_metrics <- renderUI({
     model_fit_obj <- model_fit()
