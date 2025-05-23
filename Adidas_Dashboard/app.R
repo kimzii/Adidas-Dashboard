@@ -132,11 +132,16 @@ ui <- dashboardPage(
                 )
               ),
               fluidRow(
-                infoBoxOutput("sales_period1", width = 3),
-                infoBoxOutput("sales_period2", width = 3),
-                infoBoxOutput("sales_pct_change", width = 3),
-                infoBoxOutput("total_units_sold", width = 3)
+                column(width = 6, md = 3,
+                       infoBoxOutput("sales_period1", width = NULL)),
+                column(width = 6, md = 3,
+                       infoBoxOutput("sales_period2", width = NULL)),
+                column(width = 6, md = 3,
+                       infoBoxOutput("sales_pct_change", width = NULL)),
+                column(width = 6, md = 3,
+                       infoBoxOutput("total_units_sold", width = NULL))
               ),
+              
               fluidRow(
                 box(title = "Sales by State (USA)", status = "info", solidHeader = TRUE, width = 12,
                     plotlyOutput("sales_map"))
