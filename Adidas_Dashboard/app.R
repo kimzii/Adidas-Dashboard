@@ -31,7 +31,7 @@ state_lookup <- tibble(
 ui <- dashboardPage(
   dashboardHeader(title = tags$div(
     style = "display: flex; align-items: center; justify-content: center; width: 100%; padding-top: 5px;",
-    tags$img(src = "logo.png", height = "40px", style = "margin-right: 10px;"),
+    tags$img(src = "logo.png", height = "40px", style = "margin-right: 10px;")
   )),
   dashboardSidebar(
     sidebarMenu(
@@ -45,71 +45,107 @@ ui <- dashboardPage(
   dashboardBody(
     tags$head(
       tags$style(HTML("
-    /* Sidebar fixed for desktop */
-    .main-sidebar {
-      position: fixed;
-      top: 50px;
-      height: calc(100% - 50px);
-      overflow: hidden;
-    }
+        /* Reset margin and padding on body/html */
+        html, body {
+          margin: 0; 
+          padding: 0;
+          height: 100%;
+        }
+        /* Fixed header styling */
+        .main-header {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 50px;
+          background-color: #3c8dbc; /* Customize header color */
+          border-bottom: none;
+          box-shadow: none;
+          z-index: 1030;
+        }
+        /* Sidebar fixed below header */
+        /* Wrapper padding so content is not hidden under fixed header */
+        .wrapper {
+          padding-top: 50px;
+          min-height: 100vh;
+        }
+        .content-wrapper, .right-side {
+          margin-left: 230px;
+          height: calc(100vh - 50px);
+          overflow-y: auto;
+          padding-top: 20px;
+        }
+        @media (max-width: 768px) {
+          .main-sidebar {
+            position: absolute;
+            transform: translateX(-230px);
+            transition: transform 0.3s ease;
+            z-index: 999;
+            top: 50px;
+          }
+          .sidebar-open .main-sidebar {
+            transform: translateX(0);
+          }
+          .content-wrapper, .right-side {
+            margin-left: 0 !important;
+            padding-top: 100px;
+          }
+          .sidebar-open .content-wrapper::before {
+            content: '';
+            position: fixed;
+            top: 50px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 50px);
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+          }
+        }
 
-    .main-header {
-      position: fixed;
-      width: 100%;
-      z-index: 1030;
-    }
+        /* Sidebar logo adjustments to remove gap */
+        .main-sidebar .logo {
+          padding-top: 5px !important;
+          padding-bottom: 5px !important;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        .main-sidebar .logo img {
+          max-height: 50px;
+          margin: 0 auto !important;
+        }
 
-    .wrapper {
-      padding-top: 50px;
-    }
-
-    .content-wrapper, .right-side {
-      margin-left: 230px;
-      height: calc(100vh - 50px);
-      overflow-y: auto;
-      padding-top: 50px;  /* 👈 Add spacing below the fixed header */
-    }
-
-    @media (max-width: 768px) {
-      .main-sidebar {
-        position: absolute;
-        transform: translateX(-230px);
-        transition: transform 0.3s ease;
-        z-index: 999;
-      }
-
-      .sidebar-open .main-sidebar {
-        transform: translateX(0);
-      }
-
-      .content-wrapper, .right-side {
-        margin-left: 0 !important;
-        padding-top: 100px; /* 👈 Extra padding for mobile view */
-      }
-
-      .main-header {
-        position: fixed;
-      }
-
-      .wrapper {
-        padding-top: 50px;
-      }
-
-      .sidebar-open .content-wrapper::before {
-        content: '';
-        position: fixed;
-        top: 50px;
-        left: 0;
-        width: 100%;
-        height: calc(100% - 50px);
-        background: rgba(0, 0, 0, 0.3);
-        z-index: 998;
-      }
-    }
-  "))
+        /* Recommendations styling */
+        .rec-card {
+          border-left: 5px solid;
+          padding: 15px;
+          margin-bottom: 15px;
+          border-radius: 4px;
+        }
+        .rec-marketing {
+          background: #f0f8ff;
+          border-color: #007bff;
+        }
+        .rec-operations {
+          background: #fff3cd;
+          border-color: #ffc107;
+        }
+        .rec-pricing {
+          background: #f8d7da;
+          border-color: #dc3545;
+        }
+        .rec-title {
+          margin-bottom: 10px;
+        }
+        .rec-suggested {
+          background: #d1ecf1;
+          color: #0c5460;
+          padding: 10px;
+          border-radius: 3px;
+          font-weight: bold;
+        }
+      "))
     ),
-    
-    
     
     tabItems(
       # Dashboard Home Tab
@@ -132,16 +168,11 @@ ui <- dashboardPage(
                 )
               ),
               fluidRow(
-                column(width = 6, md = 3,
-                       infoBoxOutput("sales_period1", width = NULL)),
-                column(width = 6, md = 3,
-                       infoBoxOutput("sales_period2", width = NULL)),
-                column(width = 6, md = 3,
-                       infoBoxOutput("sales_pct_change", width = NULL)),
-                column(width = 6, md = 3,
-                       infoBoxOutput("total_units_sold", width = NULL))
+                column(width = 6, md = 3, infoBoxOutput("sales_period1", width = NULL)),
+                column(width = 6, md = 3, infoBoxOutput("sales_period2", width = NULL)),
+                column(width = 6, md = 3, infoBoxOutput("sales_pct_change", width = NULL)),
+                column(width = 6, md = 3, infoBoxOutput("total_units_sold", width = NULL))
               ),
-              
               fluidRow(
                 box(title = "Sales by State (USA)", status = "info", solidHeader = TRUE, width = 12,
                     plotlyOutput("sales_map"))
@@ -154,7 +185,7 @@ ui <- dashboardPage(
               )
       ),
       
-      # Diagnostic Analysis Tab (unchanged for brevity)
+      # Diagnostic Analysis Tab
       tabItem(tabName = "diagnostic",
               fluidRow(
                 box(title = "Monthly Sales Trend", status = "primary", solidHeader = TRUE, width = 12,
@@ -179,22 +210,16 @@ ui <- dashboardPage(
                     plotlyOutput("predicted_vs_actual"))
               ),
               fluidRow(
-                box(
-                  title = "Model Performance Metrics",
-                  status = "primary",
-                  solidHeader = TRUE,
-                  width = 12,
-                  htmlOutput("model_metrics")
-                )
-                
+                box(title = "Model Performance Metrics", status = "primary", solidHeader = TRUE, width = 12,
+                    htmlOutput("model_metrics"))
               )
       ),
       
       # Prescriptive Analysis Tab
       tabItem(tabName = "prescriptive",
               fluidRow(
-                box(title = "Recommendations", status = "danger", solidHeader = TRUE, width = 12,
-                    verbatimTextOutput("recommendations"))
+                box(title = "Strategic Recommendations", status = "danger", solidHeader = TRUE, width = 12,
+                    uiOutput("styled_recommendations"), style = "overflow-y: auto; max-height: 600px;")
               ),
               fluidRow(
                 box(title = "Profit by Region and Sales Method", status = "info", solidHeader = TRUE, width = 12,
@@ -223,7 +248,7 @@ ui <- dashboardPage(
               h4("📁 Data Source:"),
               tags$p(
                 "Dataset sourced internally or from market research, preprocessed for this dashboard. You can also find the dataset on ",
-                a(href = "https://www.kaggle.com/datasets/heemalichaudhari/adidas-sales-dataset", "Kaggle", target="_blank"),
+                a(href = "https://www.kaggle.com/datasets/heemalichaudhari/adidas-sales-dataset", "Kaggle", target = "_blank"),
                 "."
               )
       )
@@ -234,23 +259,18 @@ ui <- dashboardPage(
 # Server
 server <- function(input, output, session) {
   
-  # Reactive filtered data for dashboard
   filtered_data <- reactive({
     data <- adidas_data
-    # Filter by date
     date_range <- input$date_filter
     if (!is.null(date_range)) {
       data <- data %>% filter(Invoice.Date >= date_range[1], Invoice.Date <= date_range[2])
     }
-    # Filter by retailer
     if (!is.null(input$retailer_filter) && length(input$retailer_filter) > 0) {
       data <- data %>% filter(Retailer %in% input$retailer_filter)
     }
     data
   })
   
-  # Prepare comparison periods for infoBoxes:
-  # We split the date range into two equal halves for comparison
   comparison_data <- reactive({
     data <- filtered_data()
     date_range <- input$date_filter
@@ -266,58 +286,32 @@ server <- function(input, output, session) {
     )
   })
   
-  # InfoBoxes for comparison
-  
   output$sales_period1 <- renderInfoBox({
     comp <- comparison_data()
     if (is.null(comp)) return(NULL)
-    infoBox(
-      "Sales Period 1",
-      dollar(comp$period1_sales),
-      icon = icon("calendar-alt"),
-      color = "blue"
-    )
+    infoBox("Sales Period 1", dollar(comp$period1_sales), icon = icon("calendar-alt"), color = "blue")
   })
   
   output$sales_period2 <- renderInfoBox({
     comp <- comparison_data()
     if (is.null(comp)) return(NULL)
-    infoBox(
-      "Sales Period 2",
-      dollar(comp$period2_sales),
-      icon = icon("calendar-alt"),
-      color = "navy"
-    )
+    infoBox("Sales Period 2", dollar(comp$period2_sales), icon = icon("calendar-alt"), color = "navy")
   })
   
   output$sales_pct_change <- renderInfoBox({
     comp <- comparison_data()
     if (is.null(comp)) return(NULL)
     pct_change <- ifelse(comp$period1_sales == 0, NA, (comp$period2_sales - comp$period1_sales)/comp$period1_sales * 100)
-    
-    # Choose color and icon based on increase or decrease
     color <- ifelse(pct_change >= 0, "green", "red")
     icon_used <- ifelse(pct_change >= 0, "arrow-up", "arrow-down")
-    
-    infoBox(
-      "Sales % Change",
-      ifelse(is.na(pct_change), "N/A", paste0(round(pct_change, 2), "%")),
-      icon = icon(icon_used),
-      color = color
-    )
+    infoBox("Sales % Change", ifelse(is.na(pct_change), "N/A", paste0(round(pct_change, 2), "%")), icon = icon(icon_used), color = color)
   })
   
   output$total_units_sold <- renderInfoBox({
     data <- filtered_data()
-    infoBox(
-      "Total Units Sold",
-      comma(sum(data$Units.Sold, na.rm = TRUE)),
-      icon = icon("boxes"),
-      color = "orange"
-    )
+    infoBox("Total Units Sold", comma(sum(data$Units.Sold, na.rm = TRUE)), icon = icon("boxes"), color = "orange")
   })
   
-  # Update state_sales reactive based on filtered data
   state_sales <- reactive({
     data <- filtered_data() %>%
       mutate(State_lower = tolower(State)) %>%
@@ -329,7 +323,6 @@ server <- function(input, output, session) {
     data
   })
   
-  # Update product_sales reactive filtered
   product_sales <- reactive({
     filtered_data() %>%
       group_by(Product) %>%
@@ -338,7 +331,6 @@ server <- function(input, output, session) {
       arrange(desc(Total_Sales))
   })
   
-  # Update method_sales reactive filtered
   method_sales <- reactive({
     filtered_data() %>%
       group_by(Sales.Method) %>%
@@ -346,7 +338,6 @@ server <- function(input, output, session) {
                 Total_Units = sum(Units.Sold, na.rm = TRUE))
   })
   
-  # Reactive for predictive model with filtered data
   model_data_filtered <- reactive({
     df <- filtered_data() %>%
       select(Total.Sales, Price.per.Unit, Units.Sold, Sales.Method) %>%
@@ -453,13 +444,12 @@ server <- function(input, output, session) {
       geom_point(color = "darkorange") +
       geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") +
       labs(x = "Actual Total Sales", y = "Predicted Total Sales") +
-      scale_x_continuous(labels = scales::dollar) +  # 👈 disable sci notation
+      scale_x_continuous(labels = scales::dollar) +
       scale_y_continuous(labels = scales::dollar) +
       theme_minimal()
     
     ggplotly(p)
   })
-  
   
   output$model_metrics <- renderUI({
     model_fit_obj <- model_fit()
@@ -481,14 +471,25 @@ server <- function(input, output, session) {
     ))
   })
   
-  
-  output$recommendations <- renderPrint({
-    cat("Recommendations based on current sales data and model insights:\n")
-    cat("- Focus marketing efforts on high performing products like Men's Street Footwear and Women's Apparel.\n")
-    cat("- Enhance promotions in regions with lower sales to boost revenue.\n")
-    cat("- Consider optimizing inventory distribution by sales method; e.g., increase stock in-store if sales are higher.\n")
-    cat("- Monitor products with low operating margins for cost optimization.\n")
-    cat("- Use predictive insights to adjust pricing strategies for maximizing profit.\n")
+  # Styled Recommendations UI
+  output$styled_recommendations <- renderUI({
+    tagList(
+      div(class = "rec-card rec-marketing",
+          tags$h4(icon("bullhorn"), " Targeted Marketing Campaign in North America", class = "rec-title"),
+          tags$p("Focus marketing campaigns on the Northeast and West Coast regions, targeting high performing products like Men's Street Footwear and Women's Apparel to sustain sales momentum."),
+          div(class = "rec-suggested", "Suggested Action: Launch targeted regional promotions and digital campaigns.")
+      ),
+      div(class = "rec-card rec-operations",
+          tags$h4(icon("cogs"), " Optimize Inventory Distribution", class = "rec-title"),
+          tags$p("Analyze regional sales data to adjust stock levels and reduce stockouts or overstock."),
+          div(class = "rec-suggested", "Suggested Action: Implement dynamic inventory management based on sales velocity.")
+      ),
+      div(class = "rec-card rec-pricing",
+          tags$h4(icon("tags"), " Strategic Price Adjustment", class = "rec-title"),
+          tags$p("Adjust pricing for products with declining sales and low operating margins to improve profitability."),
+          div(class = "rec-suggested", "Suggested Action: Use predictive insights to optimize price points regionally.")
+      )
+    )
   })
   
   output$profit_region_method <- renderPlotly({
