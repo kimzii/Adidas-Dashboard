@@ -164,7 +164,19 @@ ui <- dashboardPage(
                   selectInput("retailer_filter", "Select Retailers:",
                               choices = sort(unique(adidas_data$Retailer)),
                               multiple = TRUE,
-                              selected = unique(adidas_data$Retailer))
+                              selected = unique(adidas_data$Retailer)),
+                  selectInput("sales_method_filter", "Select Sales Method(s):",
+                              choices = sort(unique(adidas_data$Sales.Method)),
+                              multiple = TRUE,
+                              selected = unique(adidas_data$Sales.Method)),
+                  selectInput("region_filter", "Select Region(s):",
+                              choices = sort(unique(adidas_data$Region)),
+                              multiple = TRUE,
+                              selected = unique(adidas_data$Region)),
+                  selectInput("product_filter", "Select Product(s):",
+                              choices = sort(unique(adidas_data$Product)),
+                              multiple = TRUE,
+                              selected = unique(adidas_data$Product))
                 )
               ),
               fluidRow(
@@ -268,8 +280,18 @@ server <- function(input, output, session) {
     if (!is.null(input$retailer_filter) && length(input$retailer_filter) > 0) {
       data <- data %>% filter(Retailer %in% input$retailer_filter)
     }
+    if (!is.null(input$sales_method_filter) && length(input$sales_method_filter) > 0) {
+      data <- data %>% filter(Sales.Method %in% input$sales_method_filter)
+    }
+    if (!is.null(input$region_filter) && length(input$region_filter) > 0) {
+      data <- data %>% filter(Region %in% input$region_filter)
+    }
+    if (!is.null(input$product_filter) && length(input$product_filter) > 0) {
+      data <- data %>% filter(Product %in% input$product_filter)
+    }
     data
   })
+  
   
   comparison_data <- reactive({
     data <- filtered_data()
