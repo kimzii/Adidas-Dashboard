@@ -1,4 +1,5 @@
-library(shiny)
+# Load libraries
+library(shinythemes)
 library(shinydashboard)
 library(tidyverse)
 library(plotly)
@@ -28,92 +29,33 @@ state_lookup <- tibble(
 )
 
 # UI
-ui <- dashboardPage(
-  dashboardHeader(title = tags$div(
-    style = "display: flex; align-items: center; justify-content: center; width: 100%; padding-top: 5px;",
-    tags$img(src = "logo.png", height = "40px", style = "margin-right: 10px;")
-  )),
-  dashboardSidebar(
-    sidebarMenu(
-      menuItem("Dashboard Home", tabName = "home", icon = icon("tachometer-alt")),
-      menuItem("Diagnostic Analysis", tabName = "diagnostic", icon = icon("search")),
-      menuItem("Predictive Analysis", tabName = "predictive", icon = icon("chart-line")),
-      menuItem("Prescriptive Analysis", tabName = "prescriptive", icon = icon("lightbulb")),
-      menuItem("About", tabName = "about", icon = icon("info-circle"))
-    )
+ui <- navbarPage(
+  title = div(
+    tags$img(src = "logo.png", height = "40px", style = "margin-right:10px;"),
+    "Adidas Dashboard"
   ),
-  dashboardBody(
-    tags$head(
-      tags$style(HTML("
+  theme = shinytheme("cyborg"),
+  
+  tags$head(
+    tags$style(HTML("
         /* Reset margin and padding on body/html */
         html, body {
           margin: 0; 
           padding: 0;
           height: 100%;
         }
-        /* Fixed header styling */
-        .main-header {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 50px;
-          background-color: #3c8dbc; /* Customize header color */
-          border-bottom: none;
-          box-shadow: none;
-          z-index: 1030;
+        
+        h2 {
+          font-size: 36px !important;
+          font-weight: bold;
         }
-        /* Sidebar fixed below header */
-        /* Wrapper padding so content is not hidden under fixed header */
-        .wrapper {
-          padding-top: 50px;
-          min-height: 100vh;
+        h3 {
+          font-size: 28px !important;
+          font-weight: bold;
         }
-        .content-wrapper, .right-side {
-          margin-left: 230px;
-          height: calc(100vh - 50px);
-          overflow-y: auto;
-          padding-top: 20px;
-        }
-        @media (max-width: 768px) {
-          .main-sidebar {
-            position: absolute;
-            transform: translateX(-230px);
-            transition: transform 0.3s ease;
-            z-index: 999;
-            top: 50px;
+        h4 {
+          font-size: 22px !important;
           }
-          .sidebar-open .main-sidebar {
-            transform: translateX(0);
-          }
-          .content-wrapper, .right-side {
-            margin-left: 0 !important;
-            padding-top: 100px;
-          }
-          .sidebar-open .content-wrapper::before {
-            content: '';
-            position: fixed;
-            top: 50px;
-            left: 0;
-            width: 100%;
-            height: calc(100% - 50px);
-            background: rgba(0, 0, 0, 0.3);
-            z-index: 998;
-          }
-        }
-
-        /* Sidebar logo adjustments to remove gap */
-        .main-sidebar .logo {
-          padding-top: 5px !important;
-          padding-bottom: 5px !important;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-        .main-sidebar .logo img {
-          max-height: 50px;
-          margin: 0 auto !important;
-        }
 
         /* Recommendations styling */
         .rec-card {
@@ -123,16 +65,16 @@ ui <- dashboardPage(
           border-radius: 4px;
         }
         .rec-marketing {
-          background: #f0f8ff;
-          border-color: #007bff;
+          background:#002b47;
+          border-color: #0099f9;
         }
         .rec-operations {
-          background: #fff3cd;
-          border-color: #ffc107;
+          background: #16390e;
+          border-color: #4dc731;
         }
         .rec-pricing {
-          background: #f8d7da;
-          border-color: #dc3545;
+          background: #410505;
+          border-color: #e61313;
         }
         .rec-title {
           margin-bottom: 10px;
@@ -145,126 +87,127 @@ ui <- dashboardPage(
           font-weight: bold;
         }
       "))
-    ),
-    
-    tabItems(
-      # Dashboard Home Tab
-      tabItem(tabName = "home",
-              fluidRow(
-                box(
-                  title = "Filters",
-                  status = "primary",
-                  solidHeader = TRUE,
-                  width = 12,
-                  dateRangeInput("date_filter", "Select Invoice Date Range:",
-                                 start = min(adidas_data$Invoice.Date),
-                                 end = max(adidas_data$Invoice.Date),
-                                 min = min(adidas_data$Invoice.Date),
-                                 max = max(adidas_data$Invoice.Date)),
-                  selectInput("retailer_filter", "Select Retailers:",
-                              choices = sort(unique(adidas_data$Retailer)),
-                              multiple = TRUE,
-                              selected = unique(adidas_data$Retailer)),
-                  selectInput("sales_method_filter", "Select Sales Method(s):",
-                              choices = sort(unique(adidas_data$Sales.Method)),
-                              multiple = TRUE,
-                              selected = unique(adidas_data$Sales.Method)),
-                  selectInput("region_filter", "Select Region(s):",
-                              choices = sort(unique(adidas_data$Region)),
-                              multiple = TRUE,
-                              selected = unique(adidas_data$Region)),
-                  selectInput("product_filter", "Select Product(s):",
-                              choices = sort(unique(adidas_data$Product)),
-                              multiple = TRUE,
-                              selected = unique(adidas_data$Product))
-                )
-              ),
-              fluidRow(
-                column(width = 6, md = 3, infoBoxOutput("sales_period1", width = NULL)),
-                column(width = 6, md = 3, infoBoxOutput("sales_period2", width = NULL)),
-                column(width = 6, md = 3, infoBoxOutput("sales_pct_change", width = NULL)),
-                column(width = 6, md = 3, infoBoxOutput("total_units_sold", width = NULL))
-              ),
-              fluidRow(
-                box(title = "Sales by State (USA)", status = "info", solidHeader = TRUE, width = 12,
-                    plotlyOutput("sales_map"))
-              ),
-              fluidRow(
-                box(title = "Top 10 Products by Sales", status = "primary", solidHeader = TRUE, width = 6,
-                    plotlyOutput("top_products")),
-                box(title = "Sales by Sales Method", status = "primary", solidHeader = TRUE, width = 6,
-                    plotlyOutput("sales_by_method"))
-              )
-      ),
-      
-      # Diagnostic Analysis Tab
-      tabItem(tabName = "diagnostic",
-              fluidRow(
-                box(title = "Monthly Sales Trend", status = "primary", solidHeader = TRUE, width = 12,
-                    plotlyOutput("monthly_sales"))
-              ),
-              fluidRow(
-                box(title = "Price vs Total Sales", status = "warning", solidHeader = TRUE, width = 6,
-                    plotlyOutput("price_vs_sales")),
-                box(title = "Units Sold vs Total Sales", status = "warning", solidHeader = TRUE, width = 6,
-                    plotlyOutput("units_vs_sales"))
-              ),
-              fluidRow(
-                box(title = "Sales Distribution by Region", status = "info", solidHeader = TRUE, width = 12,
-                    plotlyOutput("sales_by_region"))
-              )
-      ),
-      
-      # Predictive Analysis Tab
-      tabItem(tabName = "predictive",
-              fluidRow(
-                box(title = "Predicted vs Actual Sales", status = "success", solidHeader = TRUE, width = 12,
-                    plotlyOutput("predicted_vs_actual"))
-              ),
-              fluidRow(
-                box(title = "Model Performance Metrics", status = "primary", solidHeader = TRUE, width = 12,
-                    htmlOutput("model_metrics"))
-              )
-      ),
-      
-      # Prescriptive Analysis Tab
-      tabItem(tabName = "prescriptive",
-              fluidRow(
-                box(title = "Strategic Recommendations", status = "danger", solidHeader = TRUE, width = 12,
-                    uiOutput("styled_recommendations"), style = "overflow-y: auto; max-height: 600px;")
-              ),
-              fluidRow(
-                box(title = "Profit by Region and Sales Method", status = "info", solidHeader = TRUE, width = 12,
-                    plotlyOutput("profit_region_method"))
-              )
-      ),
-      
-      # About Tab
-      tabItem(tabName = "about",
-              h2("About the Adidas Sales Dashboard"),
-              br(),
-              p("This dashboard provides a comprehensive view of Adidas sales performance across regions, products, and sales methods."),
-              p("It is designed to offer diagnostic, predictive, and prescriptive insights to support sales and marketing decisions."),
-              h4("🔍 Key Features:"),
-              tags$ul(
-                tags$li(strong("Dashboard Home:"), "High-level KPIs and overview charts including sales by state, top products, and sales method."),
-                tags$li(strong("Diagnostic Analysis:"), "Deeper exploration of monthly sales trends, price and sales relationships, and regional sales distribution."),
-                tags$li(strong("Predictive Analysis:"), "Sales prediction model performance and comparison of predicted vs actual sales."),
-                tags$li(strong("Prescriptive Analysis:"), "Actionable recommendations and profit analysis by region and sales channel."),
-                tags$li(strong("About:"), "Information about the dashboard's purpose and dataset.")
-              ),
-              h4("🎯 Purpose:"),
-              p("To empower Adidas sales strategy by providing data-driven insights that help optimize marketing, inventory, and sales operations."),
-              h4("📊 Dataset:"),
-              p("Contains sales transactions across multiple US regions and sales methods with detailed product-level data."),
-              h4("📁 Data Source:"),
-              tags$p(
-                "Dataset sourced internally or from market research, preprocessed for this dashboard. You can also find the dataset on ",
-                a(href = "https://www.kaggle.com/datasets/heemalichaudhari/adidas-sales-dataset", "Kaggle", target = "_blank"),
-                "."
-              )
-      )
-    )
+  ),
+  
+  tabPanel("Home",
+           sidebarLayout(
+             sidebarPanel(
+               width = 3,
+               dateRangeInput("date_filter", "Select Invoice Date Range:",
+                              start = min(adidas_data$Invoice.Date),
+                              end = max(adidas_data$Invoice.Date)),
+               selectInput("retailer_filter", "Select Retailers:",
+                           choices = sort(unique(adidas_data$Retailer)),
+                           multiple = TRUE,
+                           selected = unique(adidas_data$Retailer)),
+               selectInput("sales_method_filter", "Select Sales Method(s):",
+                           choices = sort(unique(adidas_data$Sales.Method)),
+                           multiple = TRUE,
+                           selected = unique(adidas_data$Sales.Method)),
+               selectInput("region_filter", "Select Region(s):",
+                           choices = sort(unique(adidas_data$Region)),
+                           multiple = TRUE,
+                           selected = unique(adidas_data$Region)),
+               selectInput("product_filter", "Select Product(s):",
+                           choices = sort(unique(adidas_data$Product)),
+                           multiple = TRUE,
+                           selected = unique(adidas_data$Product))
+             ),
+             mainPanel(
+               fluidPage(
+                 h2("Welcome to the Adidas Sales Dashboard"),
+                 p("This dashboard provides insights into sales data, trends, and recommendations."),
+                 fluidRow(
+                   column(width = 6, md = 3, infoBoxOutput("sales_period1", width = NULL)),
+                   column(width = 6, md = 3, infoBoxOutput("sales_period2", width = NULL)),
+                   column(width = 6, md = 3, infoBoxOutput("sales_pct_change", width = NULL)),
+                   column(width = 6, md = 3, infoBoxOutput("total_units_sold", width = NULL))
+                 ),
+                 fluidRow(
+                   box(title = "Sales by State (USA)", status = "info", solidHeader = TRUE, width = 12,
+                       plotlyOutput("sales_map"))
+                 ),
+                 fluidRow(
+                   box(title = "Top 10 Products by Sales", status = "primary", solidHeader = TRUE, width = 6,
+                       plotlyOutput("top_products")),
+                   box(title = "Sales by Sales Method", status = "primary", solidHeader = TRUE, width = 6,
+                       plotlyOutput("sales_by_method"))
+                 )
+               )
+             )
+           )
+  ),
+  
+  tabPanel("Diagnostic",
+           sidebarLayout(
+             sidebarPanel(
+               width = 3,
+               dateRangeInput("date_filter", "Select Invoice Date Range:",
+                              start = min(adidas_data$Invoice.Date),
+                              end = max(adidas_data$Invoice.Date)),
+               selectInput("retailer_filter", "Select Retailers:",
+                           choices = sort(unique(adidas_data$Retailer)),
+                           multiple = TRUE,
+                           selected = unique(adidas_data$Retailer)),
+               selectInput("sales_method_filter", "Select Sales Method(s):",
+                           choices = sort(unique(adidas_data$Sales.Method)),
+                           multiple = TRUE,
+                           selected = unique(adidas_data$Sales.Method)),
+               selectInput("region_filter", "Select Region(s):",
+                           choices = sort(unique(adidas_data$Region)),
+                           multiple = TRUE,
+                           selected = unique(adidas_data$Region)),
+               selectInput("product_filter", "Select Product(s):",
+                           choices = sort(unique(adidas_data$Product)),
+                           multiple = TRUE,
+                           selected = unique(adidas_data$Product))
+             ),
+             mainPanel(
+               fluidPage(
+                 fluidRow(
+                   box(title = "Monthly Sales Trend", width = 12, plotlyOutput("monthly_sales"))
+                 ),
+                 fluidRow(
+                   box(title = "Price vs Total Sales", width = 6, plotlyOutput("price_vs_sales")),
+                   box(title = "Units Sold vs Total Sales", width = 6, plotlyOutput("units_vs_sales"))
+                 ),
+                 fluidRow(
+                   box(title = "Sales Distribution by Region", width = 12, plotlyOutput("sales_by_region"))
+                 )
+               )
+             )
+           )
+  ),
+  
+  tabPanel("Predictive",
+           fluidPage(
+             fluidRow(
+               box(title = "Predicted vs Actual Sales", width = 12, plotlyOutput("predicted_vs_actual"))
+             ),
+             fluidRow(
+               box(title = "Model Performance Metrics", width = 12, htmlOutput("model_metrics"))
+             )
+           )
+  ),
+  
+  tabPanel("Prescriptive",
+           fluidPage(
+             fluidRow(
+               box(title = "Strategic Recommendations", width = 12, uiOutput("styled_recommendations"))
+             ),
+             fluidRow(
+               box(title = "Profit by Region and Sales Method", width = 12, plotlyOutput("profit_region_method"))
+             )
+           )
+  ),
+  
+  tabPanel("About",
+           fluidPage(
+             h2("About the Adidas Sales Dashboard"),
+             p("This dashboard provides a comprehensive view of Adidas sales performance, trends, and recommendations using diagnostic, predictive, and prescriptive analytics."),
+             h4("Dataset:"), 
+             p("Data source: ", a("Kaggle Adidas Sales Dataset", href = "https://www.kaggle.com/datasets/heemalichaudhari/adidas-sales-dataset", target = "_blank"))
+           )
   )
 )
 
@@ -363,13 +306,25 @@ server <- function(input, output, session) {
   model_data_filtered <- reactive({
     df <- filtered_data() %>%
       select(Total.Sales, Price.per.Unit, Units.Sold, Sales.Method) %>%
+      filter(
+        !is.na(Total.Sales),
+        !is.na(Price.per.Unit),
+        !is.na(Units.Sold),
+        !is.na(Sales.Method)
+      ) %>%
       mutate(Sales.Method = as.factor(Sales.Method))
+    
+    # Return only if enough data
+    if (nrow(df) < 2) return(NULL)
     df
   })
   
   model_fit <- reactive({
-    train(Total.Sales ~ ., data = model_data_filtered(), method = "lm")
+    df <- model_data_filtered()
+    if (is.null(df)) return(NULL)
+    train(Total.Sales ~ ., data = df, method = "lm")
   })
+  
   
   output$sales_map <- renderPlotly({
     df <- state_sales()
@@ -517,12 +472,15 @@ server <- function(input, output, session) {
   output$profit_region_method <- renderPlotly({
     profit_data <- filtered_data() %>%
       group_by(Region, Sales.Method) %>%
-      summarise(Total_Profit = sum(Operating.Profit, na.rm = TRUE))
+      summarise(Total_Profit = sum(Operating.Profit, na.rm = TRUE), .groups = "drop")
+    
     p <- ggplot(profit_data, aes(x = Region, y = Total_Profit, fill = Sales.Method)) +
       geom_col(position = "dodge") +
       scale_y_continuous(labels = scales::dollar) +
       labs(x = "Region", y = "Operating Profit", fill = "Sales Method") +
+      scale_fill_manual(values = c("#0082f9", "#37f900", "#f70202")) +
       theme_minimal()
+    
     ggplotly(p)
   })
   
