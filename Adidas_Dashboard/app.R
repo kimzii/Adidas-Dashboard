@@ -31,7 +31,7 @@ state_lookup <- tibble(
 # UI
 ui <- navbarPage(
   title = div(
-    tags$img(src = "logo.png", height = "40px", style = "margin-right:10px;"),
+    tags$img(src = "logo.png", height = "20px", style = "margin-right:10px;"),
     "Adidas Dashboard"
   ),
   theme = shinytheme("cyborg"),
