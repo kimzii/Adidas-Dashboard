@@ -55,6 +55,7 @@ ui <- navbarPage(
         }
         h4 {
           font-size: 22px !important;
+          font-weight: bold;
           }
 
         /* Recommendations styling */
@@ -203,13 +204,34 @@ ui <- navbarPage(
   
   tabPanel("About",
            fluidPage(
-             h2("About the Adidas Sales Dashboard"),
-             p("This dashboard provides a comprehensive view of Adidas sales performance, trends, and recommendations using diagnostic, predictive, and prescriptive analytics."),
-             h4("Dataset:"), 
-             p("Data source: ", a("Kaggle Adidas Sales Dataset", href = "https://www.kaggle.com/datasets/heemalichaudhari/adidas-sales-dataset", target = "_blank"))
+             div(style = "text-align: center; max-width: 900px; margin: auto;",
+                 h2("About the Adidas Sales Dashboard"),
+                 br(),
+                 p("This dashboard provides a comprehensive view of Adidas sales performance across regions, products, and sales methods."),
+                 p("It is designed to offer diagnostic, predictive, and prescriptive insights to support sales and marketing decisions."),
+                 h4("Key Features"),
+                 tags$ul(
+                   tags$li(strong("Dashboard Home:"), " High-level KPIs and overview charts including sales by state, top products, and sales method."),
+                   tags$li(strong("Diagnostic Analysis:"), " Deeper exploration of monthly sales trends, price and sales relationships, and regional sales distribution."),
+                   tags$li(strong("Predictive Analysis:"), " Sales prediction model performance and comparison of predicted vs actual sales."),
+                   tags$li(strong("Prescriptive Analysis:"), " Actionable recommendations and profit analysis by region and sales channel."),
+                   tags$li(strong("About:"), " Information about the dashboard's purpose and dataset.")
+                 ),
+                 h4("Purpose"),
+                 p("To empower Adidas sales strategy by providing data-driven insights that help optimize marketing, inventory, and sales operations."),
+                 h4("Dataset"),
+                 p("Contains sales transactions across multiple US regions and sales methods with detailed product-level data."),
+                 h4("Data Source"),
+                 tags$p(
+                   "Dataset sourced internally or from market research, preprocessed for this dashboard. You can also find the dataset on ",
+                   a(href = "https://www.kaggle.com/datasets/heemalichaudhari/adidas-sales-dataset", "Kaggle", target = "_blank"),
+                   "."
+                 )
+             )
            )
   )
 )
+  
 
 # Server
 server <- function(input, output, session) {
@@ -329,15 +351,13 @@ server <- function(input, output, session) {
   output$sales_map <- renderPlotly({
     df <- state_sales()
     plot_ly(
+      data = df,
       type = "choropleth",
-      locations = df$state_abb,
+      locations = ~state_abb,
       locationmode = "USA-states",
-      z = df$Total_Sales,
-      text = paste(df$state_abb, "<br>Total Sales:", scales::dollar(df$Total_Sales)),
-      colorscale = list(
-        c(0, "lightgray"),
-        c(1, "blue")
-      ),
+      z = ~Total_Sales,
+      text = ~paste(state_abb, "<br>Total Sales:", scales::dollar(Total_Sales)),
+      colorscale = "Viridis",      # Use the built-in Viridis colorscale here
       colorbar = list(title = "Total Sales"),
       marker = list(line = list(color = 'rgb(255,255,255)', width = 2))
     ) %>% layout(
@@ -346,13 +366,22 @@ server <- function(input, output, session) {
     )
   })
   
+  
   output$top_products <- renderPlotly({
     df <- product_sales() %>% slice_max(Total_Sales, n = 10)
+    
+    # Create the ggplot with rotated x-axis labels
     p <- ggplot(df, aes(x = reorder(Product, Total_Sales), y = Total_Sales)) +
-      geom_col(fill = "darkorange") +
-      coord_flip() +
+      geom_col(fill = "#003c73") +
+      coord_flip() +  # Flip the axis to make it easier to read
       labs(x = "Product", y = "Total Sales") +
-      scale_y_continuous(labels = scales::dollar)
+      scale_y_continuous(labels = scales::dollar) +
+      theme_minimal() +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels for better readability
+        axis.text.y = element_text(size = 10)  # Adjust font size if needed
+      )
+    
     ggplotly(p)
   })
   
@@ -362,9 +391,11 @@ server <- function(input, output, session) {
       geom_col(show.legend = FALSE) +
       labs(x = "Sales Method", y = "Total Sales") +
       scale_y_continuous(labels = scales::dollar) +
+      scale_fill_manual(values = c("#003c73", "#d6b300", "#5cd623")) +  # Apply custom colors here
       theme_minimal()
     ggplotly(p)
   })
+  
   
   output$monthly_sales <- renderPlotly({
     monthly <- filtered_data() %>%
@@ -372,8 +403,8 @@ server <- function(input, output, session) {
       group_by(Month) %>%
       summarise(Total_Sales = sum(Total.Sales, na.rm = TRUE))
     p <- ggplot(monthly, aes(x = Month, y = Total_Sales)) +
-      geom_line(color = "steelblue") +
-      geom_point(color = "steelblue") +
+      geom_line(color = "#003c73") +
+      geom_point(color = "#5cd623") +
       scale_y_continuous(labels = scales::dollar) +
       labs(x = "Month", y = "Total Sales") +
       theme_minimal()
@@ -383,7 +414,7 @@ server <- function(input, output, session) {
   output$price_vs_sales <- renderPlotly({
     df <- filtered_data()
     p <- ggplot(df, aes(x = Price.per.Unit, y = Total.Sales)) +
-      geom_point(alpha = 0.5, color = "forestgreen") +
+      geom_point(alpha = 0.5, color = "#5cd623") +
       scale_y_continuous(labels = scales::dollar) +
       labs(x = "Price per Unit", y = "Total Sales") +
       theme_minimal()
@@ -393,7 +424,7 @@ server <- function(input, output, session) {
   output$units_vs_sales <- renderPlotly({
     df <- filtered_data()
     p <- ggplot(df, aes(x = Units.Sold, y = Total.Sales)) +
-      geom_point(alpha = 0.5, color = "darkred") +
+      geom_point(alpha = 0.5, color = "#003c73") +
       scale_y_continuous(labels = scales::dollar) +
       labs(x = "Units Sold", y = "Total Sales") +
       theme_minimal()
@@ -404,11 +435,14 @@ server <- function(input, output, session) {
     region_sales <- filtered_data() %>%
       group_by(Region) %>%
       summarise(Total_Sales = sum(Total.Sales, na.rm = TRUE))
+    
     p <- ggplot(region_sales, aes(x = Region, y = Total_Sales, fill = Region)) +
       geom_col(show.legend = FALSE) +
       scale_y_continuous(labels = scales::dollar) +
+      scale_fill_manual(values = c("#003c73", "#be1720", "#d65b00", "#d6b300", "#4eb81e")) +
       labs(x = "Region", y = "Total Sales") +
       theme_minimal()
+    
     ggplotly(p)
   })
   
@@ -418,7 +452,7 @@ server <- function(input, output, session) {
     preds <- predict(model_fit_obj, newdata = df)
     
     p <- ggplot(df, aes(x = Total.Sales, y = preds)) +
-      geom_point(color = "darkorange") +
+      geom_point(color = "#003c73") +
       geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "red") +
       labs(x = "Actual Total Sales", y = "Predicted Total Sales") +
       scale_x_continuous(labels = scales::dollar) +
@@ -478,7 +512,7 @@ server <- function(input, output, session) {
       geom_col(position = "dodge") +
       scale_y_continuous(labels = scales::dollar) +
       labs(x = "Region", y = "Operating Profit", fill = "Sales Method") +
-      scale_fill_manual(values = c("#0082f9", "#37f900", "#f70202")) +
+      scale_fill_manual(values = c("#003c73", "#d6b300", "#5cd623")) +
       theme_minimal()
     
     ggplotly(p)
